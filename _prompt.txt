@@ -1,0 +1,75 @@
+I have a react native APK mobile App, in my mobile app, i have a component to make a cash transaction (deposit or withdrawal). 
+
+The cash transaction from the mobile app needs to be validated in my back-office app who have a backend rest api writen in Spring-Boot and a front end with VueJS. 
+
+When the cash transaction is validated from the back-office, the current user solde is idpated in the mobile app. The mobile app use firestore from firebase as database, and this firestore db is synchronized to a postgres db with a bi-directional synchronization (using nodejs). 
+
+The thing that i want to do is that when i validate the cash transaction from the back-office, i want to send a notification to the mobile app who says that the transaction has been validated successfully !
+
+And i want you to help me implementing this functionality. I've already tell you about my tech stack (react native for mobile APK app, spring-boot&vuejs for the back-office web app, postgres as web db and firestore from firebase as db for the mobile app).
+
+How can i implement this functionality ? Here are some files from my project, i already have a notification.tsx file who handles few things, the FormTransaction.tsx componentm the back-office file (backend and frontend). 
+
+
+
+--
+--
+--
+Those are my questions : 
+1 - What is this : 
+    @Value("${firebase.server.url}")
+    private String firebaseServerUrl;
+    
+    Do i need to change something here or do i need to add some conf variable to set up the firebase server url ? What is the value of teh String firebaseServerUrl ? Give an example.
+
+2 - In this part on the TransactionService : 
+    WebClient.create(firebaseServerUrl)
+        .post()
+        .uri("/notify")
+        .bodyValue(Map.of(
+            "userId", transaction.getUserId(),
+            "transactionId", transactionId
+        ))
+        .retrieve()
+        .toBodilessEntity()
+        .subscribe();
+    Where does come the URI "/notify" ? 
+
+3 - And do i need to create an API endpoint in my backend for this : 
+
+// In your NotificationManager.tsx, after getting the token
+const sendTokenToServer = async (token: string) => {
+  try {
+    await fetch('your-backend-url/api/users/fcm-token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: user.id,
+        fcmToken: token,
+      }),
+    });
+  } catch (error) {
+    console.error('Error sending FCM token to server:', error);
+  }
+};
+
+i dont have NotificationManager.tsx file, just a notification.tsx file which contains NotificationManager.
+Where do i put this code in the notification.tsx file : 
+const sendTokenToServer = async (token: string) => {
+  try {
+    await fetch('your-backend-url/api/users/fcm-token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: user.id,
+        fcmToken: token,
+      }),
+    });
+  } catch (error) {
+    console.error('Error sending FCM token to server:', error);
+  }
+};

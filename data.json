@@ -1,0 +1,11 @@
+{
+  "to": "eoB_aQoMS-SgDjiaThYc1Y:APA91bF3eOzLTNh1_0I2uawg7KaymKttLN5ajKRenaF78T1V-kLeGsQ2YtC52zf-sfNyfpTWkubA4nXWn3eLyTOovIvw9jYAOUuUwilDuA2Cd-VtLv-IdY4",
+  "notification": {
+    "title": "Titre de la notification",
+    "body": "Corps de la notification"
+  },
+  "data": {
+    "some_key": "some_value"
+  },
+  "priority": "high"
+}

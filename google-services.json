@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "572316813882",
+    "project_id": "my-first--app-3d844",
+    "storage_bucket": "my-first--app-3d844.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:572316813882:android:56aef87dfaa0bb9a24c303",
+        "android_client_info": {
+          "package_name": "com.zo.android_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "572316813882-499h1dv05ogjs11b67m96roja39o2coj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBeiJHf4SvYp09aSL3BVhogGT3OjGtV49Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "572316813882-499h1dv05ogjs11b67m96roja39o2coj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,57 @@
+setx /M REACT_NATIVE_PACKAGER_HOSTNAME 192.168.88.2
+
+
+npm install -g eas-cli
+npx eas project:init
+npx expo config --json
+
+
+npm i @react-native-firebase/app @react-native-firebase/messaging
+
+
+npm install expo-notifications
+npm install expo-device
+
+eas build --profile development --platform android
+com.junior28.myapp
+
+
+npm install --save @react-native-firebase/app
+
+npm install @react-native-firebase/messaging
+
+
+npx expo install expo-dev-client
+
+eas build --profile development --platform android
+
+    npx create-expo-app --template
+    Blank (TypeScript)
+
+
+eas credentials
+
+
+eas build -p android --profile preview  
+
+npx expo run:android
+
+
+npx expo prebuild
+
+npx expo start --dev-client
+
+
+npm install @react-native-firebase/app@19.0.0 @react-native-firebase/messaging@19.0.0
+
+
+./gradlew cleanBuildCache
+
+npm install
+
+
+npx expo prebuild
+npx expo run:android
+
+
+adb uninstall com.hentsa.MOBILEAPK

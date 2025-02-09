@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Modal, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Modal, TouchableOpacity } from 'react-native';
 import messaging from '@react-native-firebase/messaging';
 import Sound from 'react-native-sound';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
 
 const notificationSound = new Sound(require('../../assets/audio/notify.mp3'), (error) => {
   if (error) {
@@ -10,7 +10,6 @@ const notificationSound = new Sound(require('../../assets/audio/notify.mp3'), (e
   }
 });
 
-// Définir un type strict pour les notifications
 type Notification = {
   title: string;
   body: string;
@@ -23,39 +22,12 @@ const initializePushNotifications = async () => {
       authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
       authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
-    const userData = await AsyncStorage.getItem('@user_data');
-    if (!userData) {
-      Alert.alert('Erreur', 'User not found');
-      return;
-    }
-
-    // parse user data
-    const user = JSON.parse(userData);
-
     if (enabled) {
       console.log('Authorization status:', authStatus);
       const token = await messaging().getToken();
       console.log('FCM Token:', token);
-      
-      try {
-        await fetch('http://192.168.88.156:8099/front-office/api/users/fcm-token', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userId: user?.id, 
-            fcmToken: token,
-          }),
-        });
-        console.log('FCM token sent to server successfully');
-      } catch (error) {
-        console.error('Error sending FCM token to server:', error);
-      }
-      
       return true;
     }
-
     console.log('Permission not granted:', authStatus);
     return false;
   } catch (error) {
@@ -113,8 +85,6 @@ export default function NotificationManager() {
       });
 
       const unsubscribe = messaging().onMessage(async (remoteMessage) => {
-        console.log('Received foreground message:', remoteMessage);
-
         if (remoteMessage.notification) {
           const { title, body } = remoteMessage.notification;
           if (title && body) {
@@ -133,12 +103,17 @@ export default function NotificationManager() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Notification</Text>
+      <Text style={styles.title}>
+        <Ionicons name="notifications-outline" size={24} color="#FFA500" /> Notifications
+      </Text>
       <ScrollView>
         {notifications.map((notification, index) => (
           <View key={index} style={styles.notification}>
-            <Text style={styles.notificationTitle}>{notification.title}</Text>
-            <Text style={styles.notificationBody}>{notification.body}</Text>
+            <Ionicons name="notifications-circle-outline" size={20} color="#FFA500" style={styles.notificationIcon} />
+            <View>
+              <Text style={styles.notificationTitle}>{notification.title}</Text>
+              <Text style={styles.notificationBody}>{notification.body}</Text>
+            </View>
           </View>
         ))}
       </ScrollView>
@@ -147,6 +122,7 @@ export default function NotificationManager() {
       <Modal animationType="slide" transparent={true} visible={modalVisible}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
+            <Ionicons name="notifications-sharp" size={40} color="#FFA500" style={styles.modalIcon} />
             <Text style={styles.modalTitle}>{currentNotification?.title}</Text>
             <Text style={styles.modalBody}>{currentNotification?.body}</Text>
             <TouchableOpacity
@@ -165,61 +141,76 @@ export default function NotificationManager() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#121212',
     padding: 20,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
+    color: '#FFA500',
+    textAlign: 'center',
   },
   notification: {
-    padding: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-    width: '100%',
+    borderBottomColor: '#333',
+    backgroundColor: '#1E1E1E',
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  notificationIcon: {
+    marginRight: 10,
   },
   notificationTitle: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#FFF',
   },
   notificationBody: {
     fontSize: 14,
-    color: '#666',
+    color: '#888',
   },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
   },
   modalContent: {
-    width: 300,
-    backgroundColor: '#fff',
+    width: '80%',
+    backgroundColor: '#1E1E1E',
     padding: 20,
     borderRadius: 10,
     alignItems: 'center',
   },
+  modalIcon: {
+    marginBottom: 10,
+  },
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
+    color: '#FFA500',
     marginBottom: 10,
+    textAlign: 'center',
   },
   modalBody: {
     fontSize: 16,
+    color: '#FFF',
     marginBottom: 20,
     textAlign: 'center',
   },
   modalButton: {
-    backgroundColor: '#007BFF',
+    backgroundColor: '#FFA500',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
   },
   modalButtonText: {
-    color: '#fff',
+    color: '#121212',
     fontSize: 16,
+    fontWeight: 'bold',
   },
 });

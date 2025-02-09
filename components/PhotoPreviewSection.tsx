@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { TouchableOpacity, SafeAreaView, Image, StyleSheet, View, Alert } from 'react-native';
-import { Fontisto } from '@expo/vector-icons';
+import { TouchableOpacity, SafeAreaView, Image, StyleSheet, View, Alert, ActivityIndicator } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import firestore from '@react-native-firebase/firestore';
 
@@ -47,56 +47,56 @@ const PhotoPreviewSection: React.FC<PhotoPreviewProps> = ({
       Alert.alert("Erreur", "Impossible de mettre à jour le profil : ID utilisateur introuvable.");
       return;
     }
-  
+
     try {
       console.log("Mise à jour du Firestore pour l'utilisateur :", userId);
-  
+
       const querySnapshot = await firestore()
         .collection('users')
         .where('id', '==', userId)
         .get();
-  
+
       if (querySnapshot.empty) {
         console.error("Aucun utilisateur trouvé avec cet ID.");
         Alert.alert("Erreur", "Utilisateur introuvable.");
         return;
       }
-  
+
       querySnapshot.forEach(async (doc) => {
         await doc.ref.update({ pdp: imageUrl });
       });
-  
+
       console.log("Mise à jour réussie !");
     } catch (error) {
       console.error("Erreur lors de la mise à jour Firestore :", error);
       Alert.alert("Erreur", "Échec de la mise à jour de la photo de profil.");
     }
   };
-  
+
   const uploadToCloudinary = async () => {
     if (!userId) {
       Alert.alert('Erreur', "Utilisateur non identifié");
       return;
     }
-  
+
     try {
       setIsSaving(true);
       const cloudName = 'dusy7wuv7';
       const uploadPreset = 'react_native_upload';
-      
+
       // Générer un nom de fichier unique
       const dateString = new Date().toISOString();
       const fileName = `${userId}_profil_${dateString}.jpg`;
-      
+
       const formData = new FormData();
       formData.append('file', {
         uri: photo.uri,
         type: 'image/jpeg',
         name: fileName,
       } as any);
-  
+
       formData.append('upload_preset', uploadPreset);
-  
+
       const response = await fetch(
         `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
         {
@@ -107,24 +107,24 @@ const PhotoPreviewSection: React.FC<PhotoPreviewProps> = ({
           },
         }
       );
-  
+
       const data = await response.json();
       const secureUrl = data.secure_url;
-  
+
       // Mettre à jour Firestore
       await updateFirestoreProfile(fileName);
-  
-      // 🟢 Mettre à jour la session utilisateur
+
+      // Mettre à jour AsyncStorage
       const userData = await AsyncStorage.getItem(USER_DATA_KEY);
       if (userData) {
         const user = JSON.parse(userData);
-        user.pdp = fileName; // 🔹 Met à jour seulement le champ `pdp`
-        await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(user)); // 🔄 Sauvegarde des nouvelles données
+        user.pdp = fileName;
+        await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(user));
       }
-  
+
       Alert.alert('Succès', 'Photo de profil mise à jour avec succès');
       onSaveSuccess?.(secureUrl);
-  
+
       return secureUrl;
     } catch (error) {
       console.error("Erreur lors de la mise à jour :", error);
@@ -134,27 +134,31 @@ const PhotoPreviewSection: React.FC<PhotoPreviewProps> = ({
       setIsSaving(false);
     }
   };
-  
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.box}>
         <Image
           style={styles.previewContainer}
-          source={{uri: 'data:image/jpg;base64,' + photo.base64}}
+          source={{ uri: 'data:image/jpg;base64,' + photo.base64 }}
         />
       </View>
-      
+
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button} onPress={handleRetakePhoto}>
-          <Fontisto name='trash' size={36} color='black' />
+          <Ionicons name="trash-outline" size={32} color="#FF8C00" />
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.button} onPress={uploadToCloudinary} disabled={isSaving}>
-          <Fontisto name='save' size={36} color='black' />
+          {isSaving ? (
+            <ActivityIndicator size="small" color="#FF8C00" />
+          ) : (
+            <Ionicons name="cloud-upload-outline" size={32} color="#FF8C00" />
+          )}
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.button} onPress={onClose}>
-          <Fontisto name='close' size={36} color='black' />
+          <Ionicons name="close-outline" size={32} color="#FF8C00" />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -164,15 +168,15 @@ const PhotoPreviewSection: React.FC<PhotoPreviewProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'black',
+    backgroundColor: '#121212', // Dark background
     alignItems: 'center',
     justifyContent: 'center',
   },
   box: {
     borderRadius: 15,
-    padding: 1,
+    padding: 2,
     width: '95%',
-    backgroundColor: 'darkgray',
+    backgroundColor: '#1E1E1E', // Dark gray box
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -188,12 +192,13 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   button: {
-    backgroundColor: 'gray',
+    backgroundColor: '#292929', // Dark button
     borderRadius: 25,
-    padding: 10,
+    padding: 15,
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: 10,
+    opacity: 0.9, // Smooth opacity
   },
 });
 

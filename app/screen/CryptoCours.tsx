@@ -3,11 +3,12 @@ import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity
 import firestore from '@react-native-firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
+import getRandomInt from '../utils/random';
 
 const CryptoCours = () => {
   const [cryptoData, setCryptoData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [favorites, setFavorites] = useState<Set<number>>(new Set()); // Favoris (id_crypto)
+  const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -15,26 +16,24 @@ const CryptoCours = () => {
     fetchCryptoData();
   }, []);
 
-  // Récupérer l'ID utilisateur
   const fetchUserData = async () => {
     try {
       const userData = await AsyncStorage.getItem('@user_data');
       if (userData) {
         const parsedUser = JSON.parse(userData);
         setUserId(parsedUser.id);
-        fetchFavorites(parsedUser.id); // Charger les favoris après avoir récupéré l'utilisateur
+        fetchFavorites(parsedUser.id);
       }
     } catch (error) {
       console.error("Erreur lors de la récupération de l'utilisateur :", error);
     }
   };
 
-  // Récupérer les favoris de l'utilisateur depuis Firestore
   const fetchFavorites = async (userId: string) => {
     try {
       const favSnapshot = await firestore()
         .collection('favori')
-        .where('id_users', '==', userId)
+        .where('id_user', '==', userId)
         .get();
 
       const favSet = new Set(favSnapshot.docs.map(doc => doc.data().id_crypto));
@@ -52,7 +51,7 @@ const CryptoCours = () => {
       querySnapshot.docs.forEach(doc => {
         const docData = doc.data();
         const dateCours = new Date(docData.date_cours);
-        
+
         if (!latestData.has(docData.id_crypto) || dateCours > new Date(latestData.get(docData.id_crypto).date)) {
           latestData.set(docData.id_crypto, {
             id_crypto: docData.id_crypto,
@@ -61,7 +60,7 @@ const CryptoCours = () => {
           });
         }
       });
-      
+
       const data: any[] = [];
       for (const [id_crypto, crypto] of latestData.entries()) {
         const cryptoDoc = await firestore().collection('crypto').doc(id_crypto.toString()).get();
@@ -71,7 +70,7 @@ const CryptoCours = () => {
           data.push({ ...crypto, crypto_name: cryptoName });
         }
       }
-      
+
       setCryptoData(data);
     } catch (error) {
       console.error('Erreur lors de la récupération des données de crypto-monnaies:', error);
@@ -80,7 +79,6 @@ const CryptoCours = () => {
     }
   };
 
-  // Ajouter ou retirer une crypto des favoris
   const toggleFavorite = async (cryptoId: number) => {
     if (!userId) {
       Alert.alert('Erreur', "Utilisateur non identifié");
@@ -90,13 +88,12 @@ const CryptoCours = () => {
     try {
       const favRef = firestore()
         .collection('favori')
-        .where('id_users', '==', userId)
+        .where('id_user', '==', userId)
         .where('id_crypto', '==', cryptoId);
 
       const favSnapshot = await favRef.get();
 
       if (!favSnapshot.empty) {
-        // Supprimer des favoris
         favSnapshot.forEach(doc => doc.ref.delete());
         setFavorites(prev => {
           const newFavorites = new Set(prev);
@@ -104,9 +101,9 @@ const CryptoCours = () => {
           return newFavorites;
         });
       } else {
-        // Ajouter aux favoris
         await firestore().collection('favori').add({
-          id_users: userId,
+          id: getRandomInt(100, 10000),
+          id_user: userId,
           id_crypto: cryptoId,
         });
 
@@ -125,25 +122,25 @@ const CryptoCours = () => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {isLoading ? (
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator size="large" color="#ff8c00" />
       ) : (
         <>
-          <Text style={styles.title}>Cours des Cryptos</Text>
+          <Text style={styles.title}>📈 Cours des Cryptos</Text>
           <View style={styles.tableHeader}>
-            <Text style={styles.headerText}>Nom Crypto</Text>
-            <Text style={styles.headerText}>Cours</Text>
-            <Text style={styles.headerText}>Actions</Text>
+            <Text style={styles.headerText}>Nom</Text>
+            <Text style={styles.headerText}>Prix (USD)</Text>
+            <Text style={styles.headerText}>Favori</Text>
           </View>
-  
+
           {cryptoData.map((crypto) => (
             <View key={crypto.id_crypto} style={styles.tableRow}>
               <Text style={styles.rowText}>{crypto.crypto_name}</Text>
-              <Text style={styles.rowText}>{crypto.cours} USD</Text>
+              <Text style={styles.rowText}>{crypto.cours} $</Text>
               <TouchableOpacity onPress={() => toggleFavorite(crypto.id_crypto)}>
                 <Ionicons
                   name={favorites.has(crypto.id_crypto) ? 'heart' : 'heart-outline'}
-                  size={24}
-                  color={favorites.has(crypto.id_crypto) ? 'red' : 'black'}
+                  size={28}
+                  color={favorites.has(crypto.id_crypto) ? '#ff8c00' : '#888'}
                 />
               </TouchableOpacity>
             </View>
@@ -157,38 +154,48 @@ const CryptoCours = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f1f1f1',
-    padding: 10,
+    backgroundColor: '#121212',
+    paddingVertical: 20,
+    paddingHorizontal: 10,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
+    color: '#ff8c00',
+    textAlign: 'center',
+    marginBottom: 15,
   },
   tableHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: '100%',
-    padding: 10,
-    backgroundColor: '#ddd',
+    backgroundColor: '#1e1e1e',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
     borderRadius: 8,
+    marginBottom: 8,
   },
   headerText: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: '#ff8c00',
+    flex: 1,
+    textAlign: 'center',
   },
   tableRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: '100%',
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    backgroundColor: '#222',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginBottom: 5,
+    alignItems: 'center',
   },
   rowText: {
-    fontSize: 14,
+    fontSize: 15,
+    color: '#ddd',
+    flex: 1,
+    textAlign: 'center',
   },
 });
 
